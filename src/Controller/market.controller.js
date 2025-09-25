@@ -77,11 +77,6 @@ export const getMarketById = async (req, res) => {
 // ✅ Update Market
 export const updateMarket = async (req, res) => {
   try {
-    const { error, value } = createMarketValidator.validate(req.body);
-    if (error) {
-      return res.status(400).json({ status: "error", message: error.message });
-    }
-
     const market = await Market.findByIdAndUpdate(req.params.id, value, { new: true });
     if (!market) {
       return res.status(404).json({ status: "error", message: "Market not found" });
