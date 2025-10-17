@@ -2,7 +2,7 @@ import express from "express";
 import {
   addCheque,
   getCheques,
-  updateChequeStatus,
+  updateCheque,
   deleteCheque,
 } from "../Controller/cheque.contoller.js";
 import { handleMultipartData } from "../Utils/MultipartData.js";
@@ -16,7 +16,7 @@ router.post("/create", handleMultipartData.single("image"), addCheque);
 router.get("/get-all-cheques", getCheques);
 
 // ✏️ Update cheque status
-router.put("/update/:id/", updateChequeStatus);
+router.put("/update/:id/", handleMultipartData.single("image"),updateCheque);
 
 // ❌ Delete cheque
 router.delete("/delete/:id", deleteCheque);

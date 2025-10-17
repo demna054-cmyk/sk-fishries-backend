@@ -32,7 +32,7 @@ export const addTransaction = async (req, res) => {
 // ✅ Get All Transactions (with filter by type)
 export const getTransactions = async (req, res) => {
   try {
-    const transactions = await CashFlow.find();
+    const transactions = await CashFlow.find().sort({ createdAt: -1 });;
 
     // --- Summary Calculations ---
     let totalExpenses = 0;
@@ -173,5 +173,56 @@ export const getSummary = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ status: "error", message: err.message });
+  }
+};
+export const getSingleUserDetails = async (req, res) => {
+  try {
+    const { name } = req.params;
+    if (!name) {
+      return res.status(400).json({
+        status: "error",
+        message: "User name is required",
+      });
+    }
+
+    // Case-insensitive search using regex
+    const transactions = await CashFlow.find({
+      toFrom: { $regex: `^${name}$`, $options: "i" },
+    }).sort({ date: -1 });
+
+    if (!transactions.length) {
+      return res.status(404).json({
+        status: "error",
+        message: "No transactions found for this user",
+      });
+    }
+
+    // Calculate totals
+    let totalPaid = 0;
+    let totalReceived = 0;
+
+    transactions.forEach((tx) => {
+      if (tx.type === "paid") totalPaid += tx.amount;
+      if (tx.type === "received") totalReceived += tx.amount;
+    });
+
+    const profitOrLoss = totalReceived - totalPaid;
+
+    return res.status(200).json({
+      status: "success",
+      message: "User cashflow fetched successfully",
+      data: {
+        user: name,
+        totalPaid,
+        totalReceived,
+        profitOrLoss,
+        transactions,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
   }
 };

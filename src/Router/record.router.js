@@ -14,7 +14,7 @@ const router = express.Router();
 router.post("/create",handleMultipartData.single("image"), createRecord);
 router.get("/get-all-record", getRecords);
 router.get("/get-single-record/:id", getRecordById);
-router.put("/update/:id", updateRecord);
+router.put("/update/:id", handleMultipartData.single("image"),updateRecord);
 router.delete("/delete/:id", deleteRecord);
 
 export default router;
