@@ -6,6 +6,7 @@ import {
   updateTransaction,
   deleteTransaction,
   getSummary,
+  getSingleUserDetails,
 } from "../Controller/cashflow.controller.js";
 
 const router = express.Router();
@@ -27,5 +28,9 @@ router.delete("/delete/:id", deleteTransaction);
 
 // ✅ Get Summary (total received, total paid, net balance)
 router.get("/transactions-summary", getSummary);
+
+// getSingleUserDetails
+router.get("/user-details/:name", getSingleUserDetails);
+
 
 export default router;

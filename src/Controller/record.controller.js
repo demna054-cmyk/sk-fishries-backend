@@ -95,12 +95,31 @@ export const getRecordById = async (req, res) => {
 // Update
 export const updateRecord = async (req, res) => {
   try {
-    const record = await Record.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    let record = await Record.findById(req.params.id);
     if (!record) {
       return res.status(404).json({ status: "error", message: "Record not found" });
     }
 
-    res.status(200).json({ status: "success", message: "Record updated successfully", data: record });
+    const updateData = { ...req.body };
+
+    if (req.file) {
+      const fileDoc = new FileUpload({
+        file: req.file.filename,
+        fileType: req.file.mimetype,
+        user: req.user ? req.user._id : null,
+      });
+      await fileDoc.save();
+
+      updateData.image = fileDoc._id;
+    }
+
+    record = await Record.findByIdAndUpdate(req.params.id, updateData, { new: true });
+
+    res.status(200).json({
+      status: "success",
+      message: "Record updated successfully",
+      data: record,
+    });
   } catch (err) {
     res.status(500).json({ status: "error", message: err.message });
   }

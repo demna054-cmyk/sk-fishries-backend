@@ -2,5 +2,5 @@ node_modules
 clusters
 ./clusters
 Uploads
-.env
 package-lock.json
+config.bat

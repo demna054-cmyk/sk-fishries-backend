@@ -70,7 +70,7 @@ export const getCheques = async (req, res) => {
       query.status = status;
     }
 
-    const cheques = await Chequed.find(query).sort({ createdAt: -1 });
+    const cheques = await Chequed.find(query).sort({ createdAt: -1 }).populate('image');
 
     // --- Summary calculations ---
     let pendingChecks = 0;
@@ -109,23 +109,12 @@ export const getCheques = async (req, res) => {
 
 
 // ✅ Update Cheque Status
-export const updateChequeStatus = async (req, res) => {
+export const updateCheque = async (req, res) => {
   try {
-    // Validate input
-    const { error } = updateStatusValidator.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        status: "error",
-        message: "Validation failed",
-        errors: error.details.map((err) => err.message),
-      });
-    }
-
     const { id } = req.params;
-    const { status } = req.body;
 
-    const cheque = await Chequed.findByIdAndUpdate(id, { status }, { new: true });
-
+    // 🔹 Check if cheque exists
+    let cheque = await Chequed.findById(id);
     if (!cheque) {
       return res.status(404).json({
         status: "error",
@@ -133,9 +122,25 @@ export const updateChequeStatus = async (req, res) => {
       });
     }
 
+    // 🔹 Body se jo fields aayein unko update karo
+    const updateData = { ...req.body };
+
+    // 🔹 Agar nayi image aayi ho to handle karo
+    if (req.file) {
+      const fileDoc = await FileUpload.create({
+        file: req.file.filename,
+        fileType: req.file.mimetype,
+      });
+
+      updateData.image = fileDoc._id;
+    }
+
+    // 🔹 Update cheque
+    cheque = await Chequed.findByIdAndUpdate(id, updateData, { new: true });
+
     return res.status(200).json({
       status: "success",
-      message: "Cheque status updated successfully",
+      message: "Cheque updated successfully",
       data: cheque,
     });
   } catch (error) {
@@ -145,6 +150,7 @@ export const updateChequeStatus = async (req, res) => {
     });
   }
 };
+
 
 // ✅ Delete Cheque
 export const deleteCheque = async (req, res) => {
